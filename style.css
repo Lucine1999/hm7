@@ -1,0 +1,10 @@
+.todos{
+    display: flex;
+    padding: 20px;
+}
+.todo-item{
+    width: 200px;
+    border: 2px solid #baa9a9;
+    padding: 20px;
+    border-radius: 4px;
+}
