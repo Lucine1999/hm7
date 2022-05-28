@@ -1,10 +1,27 @@
-.todos{
+.todos {
     display: flex;
     padding: 20px;
 }
-.todo-item{
+.todo-item {
     width: 200px;
     border: 2px solid #baa9a9;
     padding: 20px;
     border-radius: 4px;
+}
+.check-input {
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+}
+.check-input-section {
+    display: flex;
+    align-items: center;
+}
+.check-input-section label {
+    margin-bottom: 0px;
+}
+.each-to-do-style {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }

@@ -8,6 +8,50 @@ function removeGMT(dateStr) {
 
 const toDoList = document.getElementById("to-do-list");
 
+function editBtnsClick(data) {
+    const editToDo = document.getElementById("edit-todo");
+    editToDo.querySelector(".todo-id").value = data.id;
+
+    editToDo.querySelector("#title").value = data.title;
+
+    editToDo.querySelector(".done-check").removeAttribute("checked");
+
+    if (data.todoDone) {
+        editToDo.querySelector(".done-check").setAttribute("checked", true);
+    }
+
+    if (data.date) {
+        editToDo.querySelector("#dateEdit").value = data.date;
+    }
+
+    $("#edit-todo").modal("show");
+}
+
+function deleteBtnsClick(id) {
+    fetch(`${BASE_URL}toDo/${id}`, {
+        headers: {
+            "Content-Type": "application/json",
+        },
+        method: "DELETE",
+        mode: "cors",
+    })
+        .then((r) => r.json())
+        .then((e) => console.log(e));
+}
+
+function changeToDo(id, data) {
+    fetch(`${BASE_URL}toDo/${id}`, {
+        headers: {
+            "Content-Type": "application/json",
+        },
+        method: "POST",
+        mode: "cors",
+        body: JSON.stringify(data),
+    })
+        .then((r) => r.json())
+        .then((e) => console.log(e));
+}
+
 fetch(`${BASE_URL}toDos`)
     .then((response) => response.json())
     .then((data) => {
@@ -26,53 +70,67 @@ fetch(`${BASE_URL}toDos`)
                     element.date;
             }
 
+            if (element.todoDone) {
+                toDoItemClone
+                    .querySelector(".done-check")
+                    .setAttribute("checked", true);
+            }
+
             toDoItemClone
-                .querySelector(".btn-edit")
-                .setAttribute("data-id", element.id);
+                .querySelector(".done-check")
+                .addEventListener("change", (e) => {
+                    let newElem = { ...element };
+                    newElem.todoDone = false;
+                    if (e.target.checked) {
+                        newElem.todoDone = true;
+                    }
+                    changeToDo(newElem.id,newElem);
+                });
+
             toDoItemClone
                 .querySelector(".btn-delete")
-                .setAttribute("data-id", element.id);
+                .addEventListener("click", () => {
+                    deleteBtnsClick(element.id);
+                });
+
+            toDoItemClone
+                .querySelector(".btn-edit")
+                .addEventListener("click", () => {
+                    editBtnsClick(element);
+                });
 
             toDoList.append(toDoItemClone);
-        });
-
-        const editBtns = document.querySelectorAll(".btn-edit");
-
-        editBtns.forEach((elem) => {
-            elem.addEventListener("click", function () {
-                let dataId = elem.getAttribute("data-id");
-
-                let editData = data.find((elem) => elem.id === dataId);
-
-                const editToDo = document.getElementById("edit-todo");
-                editToDo.querySelector(".todo-id").value = editData.id;
-
-                editToDo.querySelector("#title").value = editData.title;
-                if (editData.date) {
-                    editToDo.querySelector("#dateEdit").value = editData.date;
-                }
-
-                $("#edit-todo").modal("show");
-            });
         });
     });
 
 document
-    .getElementById("add-todo-button")
-    .addEventListener("click", function (e) {
+    .getElementById("add-todo-form")
+    .addEventListener("submit", function (e) {
         e.preventDefault();
 
-        const title = document.querySelector("#title").value;
-        if (!document.querySelector("#date").value) {
+        const title = this.querySelector("#title").value;
+        if (!this.querySelector("#date").value) {
             alert("Fill the date");
             return;
         }
-        let toISO = new Date(
-            document.querySelector("#date").value
-        ).toISOString();
-        let date = new Date(toISO);
+        let date;
+        try {
+            date = new Date(this.querySelector("#date").value).toISOString();
+            date = new Date(date);
+        } catch (e) {
+            alert(e.message);
+            return;
+        }
+
+        let currentDate = new Date().toISOString();
+        currentDate = new Date(currentDate);
+
+        if (date < currentDate) {
+            alert("Date is not valid");
+            return;
+        }
+
         date = removeGMT(date.toString());
-        let currentDate = new Date();
         currentDate = removeGMT(currentDate.toString());
 
         const data = {
@@ -100,36 +158,50 @@ document
 
         const title = this.querySelector("#title").value;
         let date;
+        let sameDate = false;
+        let todoDone = false;
+
+        if (this.querySelector(".done-check").checked) {
+            todoDone = true;
+        }
 
         if (!this.querySelector("#date").value) {
             date = this.querySelector("#dateEdit").value;
+            sameDate = true;
         } else {
-            console.log("aaa");
-            let toISO = new Date(
-                this.querySelector("#date").value
-            ).toISOString();
-            date = new Date(toISO);
-            date = removeGMT(date.toString());
+            try {
+                date = new Date(
+                    this.querySelector("#date").value
+                ).toISOString();
+                date = new Date(date);
+            } catch (e) {
+                alert(e.message);
+                return;
+            }
         }
 
-        let currentDate = new Date();
+        let currentDate = new Date().toISOString();
+        currentDate = new Date(currentDate);
+
+        if (date < currentDate) {
+            alert("Date is not valid");
+            return;
+        }
+
         let id = this.querySelector(".todo-id").value;
+
         currentDate = removeGMT(currentDate.toString());
+
+        if (!sameDate) {
+            date = removeGMT(date.toString());
+        }
 
         const data = {
             title,
             date,
             currentDate,
+            todoDone,
         };
 
-        fetch(`${BASE_URL}toDo/${id}`, {
-            headers: {
-                "Content-Type": "application/json",
-            },
-            method: "POST",
-            mode: "cors",
-            body: JSON.stringify(data),
-        })
-            .then((r) => r.json())
-            .then((e) => console.log(e));
+        changeToDo(id, data);
     });

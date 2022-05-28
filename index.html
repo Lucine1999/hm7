@@ -30,10 +30,24 @@
                     <div class="card-body">
                         <h5 class="card-title"></h5>
                         <p class="card-text"></p>
-                        <button class="btn btn-success btn-edit">Edit</button>
-                        <button class="btn btn-danger btn-delete">
-                            Delete
-                        </button>
+                        <div class="each-to-do-style">
+                            <div>
+                                <button class="btn btn-success btn-edit">
+                                    Edit
+                                </button>
+                                <button class="btn btn-danger btn-delete">
+                                    Delete
+                                </button>
+                            </div>
+                            <div>
+                                <input
+                                    class="check-input done-check"
+                                    type="checkbox"
+                                    id="done-check"
+                                    name="done_check"
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -61,36 +75,38 @@
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
-                    <div class="modal-body">
-                        <input
-                            class="form-control mb-3"
-                            type="text"
-                            name="title"
-                            id="title"
-                        />
-                        <input
-                            class="form-control"
-                            type="datetime-local"
-                            name="date"
-                            id="date"
-                        />
-                    </div>
-                    <div class="modal-footer">
-                        <button
-                            type="button"
-                            class="btn btn-secondary"
-                            data-dismiss="modal"
-                        >
-                            Close
-                        </button>
-                        <button
-                            type="button"
-                            class="btn btn-primary"
-                            id="add-todo-button"
-                        >
-                            Add
-                        </button>
-                    </div>
+                    <form id="add-todo-form">
+                        <div class="modal-body">
+                            <input
+                                class="form-control mb-3"
+                                type="text"
+                                name="title"
+                                id="title"
+                            />
+                            <input
+                                class="form-control"
+                                type="datetime-local"
+                                name="date"
+                                id="date"
+                            />
+                        </div>
+                        <div class="modal-footer">
+                            <button
+                                type="button"
+                                class="btn btn-secondary"
+                                data-dismiss="modal"
+                            >
+                                Close
+                            </button>
+                            <button
+                                type="submit"
+                                class="btn btn-primary"
+                                id="add-todo-button"
+                            >
+                                Add
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -130,12 +146,21 @@
                                 disabled
                             />
                             <input
-                                class="form-control"
+                                class="form-control mb-3"
                                 type="datetime-local"
                                 name="date"
                                 id="date"
                             />
-                            <input type="hidden" class="todo-id">
+                            <div class="check-input-section">
+                                <input
+                                    class="check-input done-check"
+                                    type="checkbox"
+                                    id="done-check-edit"
+                                    name="done_check"
+                                />
+                                <label for="done-check-edit">Done</label><br />
+                            </div>
+                            <input type="hidden" class="todo-id" />
                         </div>
                         <div class="modal-footer">
                             <button

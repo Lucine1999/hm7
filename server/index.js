@@ -9,6 +9,76 @@ app.use(express.json());
 
 app.set("json spaces", 2);
 
+function removeGMT(dateStr) {
+    let date = dateStr.split(" GMT");
+    date.splice(-1);
+    return date[0];
+}
+
+function getCurrentDate() {
+    let toISO = new Date().toISOString();
+    let date = new Date(toISO);
+    date = removeGMT(date.toString());
+
+    return date;
+}
+
+function intervalFunc() {
+    fs.readFile("./todo.json", "utf-8", (err, data) => {
+        if (err) {
+            console.log(err.message);
+        }
+        if (data !== "") {
+            let dateData = JSON.parse(data);
+            let alarmSet = false;
+            dateData.forEach((elem) => {
+                let date = getCurrentDate();
+                const savedDate = new Date(elem.date);
+                const currentDate = new Date(date);
+
+                if (currentDate < savedDate) {
+                    const milliseconds = savedDate - currentDate;
+                    const days = Math.floor(milliseconds / 86400000);
+                    const hours = Math.floor(
+                        (milliseconds % 86400000) / 3600000
+                    );
+                    const minutes = Math.floor(
+                        ((milliseconds % 86400000) % 3600000) / 60000
+                    );
+                    if (days === 0 && hours === 0) {
+                        if (minutes <= 1) {
+                            if (!(elem.alarmDone || elem.todoDone)) {
+                                console.log(
+                                    "Left 2 minutes for todo " + elem.title
+                                );
+                                elem.alarmDone = true;
+                                alarmSet = true;
+                            }
+                        }
+                    }
+                }
+            });
+            if (alarmSet) {
+                fs.writeFile("/todo.json", "", function () {
+                    console.log("Clear data");
+                });
+
+                fs.writeFile(
+                    "./todo.json",
+                    JSON.stringify(dateData, null, 2),
+                    (err) => {
+                        if (err) {
+                            console.log("Can't write to a file");
+                        }
+                        console.log("Written successfully");
+                    }
+                );
+            }
+        }
+    });
+}
+setInterval(intervalFunc, 1000);
+
 app.get("/toDos", function (req, res, next) {
     try {
         fs.readFile("./todo.json", "utf-8", (err, data) => {
@@ -36,6 +106,8 @@ app.post("/toDo", function (req, res, next) {
             }
             const result = req.body;
             result.id = uuid;
+            result.alarmDone = false;
+            result.todoDone = false;
             if (data === "") {
                 let json = [];
                 json.push(result);
@@ -96,6 +168,8 @@ app.post("/toDo/:id", function (req, res, next) {
                         if (elem.id === id) {
                             elem.title = result.title;
                             elem.date = result.date;
+                            elem.todoDone = result.todoDone;
+                            elem.alarmDone = false;
                         }
                     });
 
@@ -114,7 +188,9 @@ app.post("/toDo/:id", function (req, res, next) {
                                 });
                             }
                             console.log("Written successfully");
-                            res.status(201).send({ id: foundData.id });
+                            res.status(201).json(
+                                JSON.stringify({ id: foundData.id })
+                            );
                         }
                     );
                 } else {
@@ -123,6 +199,54 @@ app.post("/toDo/:id", function (req, res, next) {
                         message: "Can't find data with provided id",
                     });
                 }
+            }
+        });
+    } catch (e) {
+        console.log(e.message);
+        next({});
+    }
+});
+
+app.delete("/toDo/:id", function (req, res, next) {
+    try {
+        fs.readFile("./todo.json", "utf-8", (err, data) => {
+            if (err) {
+                next({ statusCode: 400, message: "Can't read from file" });
+            }
+            const id = req.params.id;
+            if (data === "") {
+                next({ statusCode: 400, message: "No data" });
+            } else {
+                let json = JSON.parse(data);
+                const foundData = json.findIndex((el) => el.id === id);
+
+                if (foundData === -1) {
+                    next({
+                        statusCode: 400,
+                        message: "Can't find data with provided id",
+                    });
+                }
+
+                json.splice(foundData, 1);
+
+                fs.writeFile("/todo.json", "", function () {
+                    console.log("Clear data");
+                });
+
+                fs.writeFile(
+                    "./todo.json",
+                    JSON.stringify(json, null, 2),
+                    (err) => {
+                        if (err) {
+                            next({
+                                statusCode: 400,
+                                message: "Can't write to file",
+                            });
+                        }
+                        console.log("Written successfully");
+                        res.status(201).json(JSON.stringify({ id: foundData }));
+                    }
+                );
             }
         });
     } catch (e) {
@@ -140,6 +264,6 @@ app.use((err, req, res, next) => {
     });
 });
 
-app.listen(5003, function () {
+app.listen(5008, function () {
     console.log("start");
 });
