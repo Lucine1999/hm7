@@ -36,7 +36,12 @@ function deleteBtnsClick(id) {
         mode: "cors",
     })
         .then((r) => r.json())
-        .then((e) => console.log(e));
+        .then((e) => {
+            console.log(e);
+            if(e.message === "deleted"){
+                location.reload();
+            }
+        });
 }
 
 function changeToDo(id, data) {
@@ -49,7 +54,12 @@ function changeToDo(id, data) {
         body: JSON.stringify(data),
     })
         .then((r) => r.json())
-        .then((e) => console.log(e));
+        .then((e) => {
+            console.log(e)
+            if(e.message === "edited"){
+                location.reload();
+            }
+        });
 }
 
 fetch(`${BASE_URL}toDos`)
@@ -148,7 +158,13 @@ document
             body: JSON.stringify(data),
         })
             .then((r) => r.json())
-            .then((e) => console.log(e));
+            .then((e) => {
+                console.log(e);
+                if(e.id){
+                    $("#add-todo").modal("hide");
+                    location.reload();
+                }
+            });
     });
 
 document

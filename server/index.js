@@ -188,9 +188,7 @@ app.post("/toDo/:id", function (req, res, next) {
                                 });
                             }
                             console.log("Written successfully");
-                            res.status(201).json(
-                                JSON.stringify({ id: foundData.id })
-                            );
+                            res.status(201).send({ message: "edited" });
                         }
                     );
                 } else {
@@ -244,7 +242,7 @@ app.delete("/toDo/:id", function (req, res, next) {
                             });
                         }
                         console.log("Written successfully");
-                        res.status(201).json(JSON.stringify({ id: foundData }));
+                        res.status(201).send({ message: "deleted" });
                     }
                 );
             }
